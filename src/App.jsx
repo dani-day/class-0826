@@ -1,18 +1,218 @@
-import { useRef, useState } from 'react';
 import './App.css';
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+// const useTodoList = create((set) => {
+//   return {
+//     // 상태
+//     list: [
+//       {
+//         id: new Date().getTime(),
+//         todo: "투두",
+//         completed: false,
+//       },
+//     ],
+//     // 액션
+//     createTodo: (todo) => {
+//       set((state) => {
+//         const newList = [
+//           ...state.list,
+//           {
+//             id: new Date().getTime(),
+//             todo,
+//             completed: false,
+//           },
+//         ];
+
+//         // set 함수를 호출할때의 규칙
+//         // 반드시 온전한 state를 반환해라!
+//         return {
+//           ...state,
+//           list: newList,
+//         };
+//       });
+//     },
+//     updateTodo: (id) => {
+//       set((state) => {
+//         const newList = state.list.map((data) => {
+//           if (data.id === id) {
+//             return {
+//               ...data,
+//               completed: !data.completed,
+//             };
+//           }
+
+//           return data;
+//         });
+
+//         // set 함수를 호출할때의 규칙
+//         // 반드시 온전한 state를 반환해라!
+//         return {
+//           ...state,
+//           list: newList,
+//         };
+//       });
+//     },
+//     deleteTodo: (id) => {
+//       set((state) => {
+//         // set 함수를 호출할때의 규칙
+//         // 반드시 온전한 state를 반환해라!
+//         const newList = state.list.filter((data) => {
+//           // false 를 리턴하면 배열에서 제외
+//           if (data.id === id) {
+//             return false;
+//           }
+//           // true 를 리턴하면 배열안에 포함
+//           return true;
+//         });
+
+//         return {
+//           ...state,
+//           list: newList,
+//         };
+//       });
+//     },
+//   };
+// });
+
+const useTodoList = create(
+  immer((set) => {
+    return {
+      // 상태
+      list: [
+        {
+          id: new Date().getTime(),
+          todo: '투두',
+          completed: false
+        }
+      ],
+      // 액션
+      createTodo: (todo) => {
+        set((state) => {
+          // const newList = [
+          //   ...state.list,
+          //   {
+          //     id: new Date().getTime(),
+          //     todo,
+          //     completed: false,
+          //   },
+          // ];
+          // return {
+          //   ...state,
+          //   list: newList,
+          // };
+
+          state.list.push({
+            id: new Date().getTime(),
+            todo,
+            completed: false
+          });
+        });
+      },
+      updateTodo: (id) => {
+        // set((state) => {
+        //   const newList = state.list.map((data) => {
+        //     if (data.id === id) {
+        //       return {
+        //         ...data,
+        //         completed: !data.completed,
+        //       };
+        //     }
+
+        //     return data;
+        //   });
+        //   return {
+        //     ...state,
+        //     list: newList,
+        //   };
+        // });
+        set((state) => {
+          const index = state.list.findIndex((item) => {
+            return item.id === id;
+          });
+          state.list[index].completed = !state.list[index].completed;
+        });
+      },
+      deleteTodo: (id) => {
+        set((state) => {
+          // // set 함수를 호출할때의 규칙
+          // // 반드시 온전한 state를 반환해라!
+          // const newList = state.list.filter((data) => {
+          //   // false 를 리턴하면 배열에서 제외
+          //   if (data.id === id) {
+          //     return false;
+          //   }
+          //   // true 를 리턴하면 배열안에 포함
+          //   return true;
+          // });
+
+          // return {
+          //   ...state,
+          //   list: newList,
+          // };
+          const index = state.list.findIndex((item) => {
+            return item.id === id;
+          });
+          state.list.splice(index);
+        });
+      }
+    };
+  })
+);
 
 function App() {
-  const ref = useRef();
-  const [todoList, setTodoList] = useState([]);
+  const { list, createTodo, updateTodo, deleteTodo } = useTodoList();
+  // const [list, setList] = useState([
+  //   {
+  //     id: new Date().getTime(),
+  //     todo: "투두",
+  //     completed: false,
+  //   },
+  // ]);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    // 값을 가공하는 부분[s]
+    // 폼을 가져오고
+    const form = e.currentTarget;
+    // 폼 데이터로 만들고
+    const formData = new FormData(form);
+    // input 의 값을 읽어온 다음에
+    const todo = formData.get('todo');
+    // 값을 가공하는 부분[e]
 
-  const onClick = () => {
-    setTodoList([...todoList, ref.current.value]);
+    // zustand 액션 호출!
+    // 값만 넘기는게 포인트
+    createTodo(todo);
+
+    // 폼 리셋
+    form.reset();
   };
-  const onKeyUp = (e) => {
-    if (e.keyCode === 13) {
-      setTodoList([...todoList, ref.current.value]);
-    }
-  };
+  console.log(list);
+  // const complete = (id) => {
+  // const newList = list.map((data) => {
+  //   if (data.id === id) {
+  //     return {
+  //       ...data,
+  //       completed: !data.completed,
+  //     };
+  //   }
+
+  //   return data;
+  // });
+  //   setList(newList);
+  // };
+  // const deleteTodo = (id) => {
+  //   const newList = list.filter((data) => {
+  //     // false 를 리턴하면 배열에서 제외
+  //     if (data.id === id) {
+  //       return false;
+  //     }
+  //     // true 를 리턴하면 배열안에 포함
+  //     return true;
+  //   });
+
+  //   setList(newList);
+  // };
 
   return (
     <div className="flex items-center justify-center w-screen h-screen font-medium">
@@ -29,19 +229,16 @@ function App() {
             </svg>
             <h4 className="font-semibold ml-3 text-lg">Todo List</h4>
           </div>
-          {/* todo[s] */}
-          {todoList.map((todo, index) => {
-            const key = `todoList_${index}`;
+          {list.map((data, index) => {
+            const key = `${data.id}_${index}`;
+            const { todo, id, completed } = data;
 
             return (
               <div className="group" key={key}>
-                {/* todo label[s] */}
                 <label className="flex items-center h-10 px-2 rounded cursor-pointer hover:bg-gray-900">
-                  {/* hidden check[s] */}
-                  <input name="hidden-check" className="hidden peer" type="checkbox" />
-                  {/* hidden check[e] */}
-                  {/* check[s] */}
+                  <input name="hidden-check" className="hidden peer" type="checkbox" defaultChecked={completed} />
                   <span
+                    onClick={() => updateTodo(id)}
                     name="check"
                     className="peer-checked:bg-green-500 peer-checked:border-green-500 peer-checked:text-white flex items-center justify-center w-5 h-5 text-transparent border-2 border-gray-500 rounded-full"
                   >
@@ -53,14 +250,10 @@ function App() {
                       />
                     </svg>
                   </span>
-                  {/* check[e] */}
-                  {/* content[s] */}
                   <span className="select-none mx-4 text-sm w-full peer-checked:line-through" name="viewer">
                     {todo}
                   </span>
-                  {/* content[e] */}
-                  {/* delete[s] */}
-                  <button name="delete" className="hidden group-hover:block">
+                  <button onClick={() => deleteTodo(id)} name="delete" className="hidden group-hover:block">
                     <svg
                       className="w-5 h-5 text-gray-400 fill-current mx-1"
                       version="1.1"
@@ -71,53 +264,48 @@ function App() {
                     >
                       <path
                         d="M13.98,0C6.259,0,0,6.261,0,13.983c0,7.721,6.259,13.982,13.98,13.982c7.725,0,13.985-6.262,13.985-13.982
-        C27.965,6.261,21.705,0,13.98,0z M19.992,17.769l-2.227,2.224c0,0-3.523-3.78-3.786-3.78c-0.259,0-3.783,3.78-3.783,3.78
-        l-2.228-2.224c0,0,3.784-3.472,3.784-3.781c0-0.314-3.784-3.787-3.784-3.787l2.228-2.229c0,0,3.553,3.782,3.783,3.782
-        c0.232,0,3.786-3.782,3.786-3.782l2.227,2.229c0,0-3.785,3.523-3.785,3.787C16.207,14.239,19.992,17.769,19.992,17.769z"
+      C27.965,6.261,21.705,0,13.98,0z M19.992,17.769l-2.227,2.224c0,0-3.523-3.78-3.786-3.78c-0.259,0-3.783,3.78-3.783,3.78
+      l-2.228-2.224c0,0,3.784-3.472,3.784-3.781c0-0.314-3.784-3.787-3.784-3.787l2.228-2.229c0,0,3.553,3.782,3.783,3.782
+      c0.232,0,3.786-3.782,3.786-3.782l2.227,2.229c0,0-3.785,3.523-3.785,3.787C16.207,14.239,19.992,17.769,19.992,17.769z"
                       />
                     </svg>
                   </button>
-                  {/* delete[e] */}
                 </label>
-                {/* todo label[e] */}
               </div>
             );
           })}
-
-          {/* todo[e] */}
-          {/* form[s] */}
-          <div className="flex items-center w-full mt-2">
-            {/* submit button[s] */}
-            <button id="submit" className="h-8 px-2 text-sm font-medium rounded" onClick={onClick}>
-              <svg className="w-5 h-5 text-gray-400 fill-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-            {/* submit button[e] */}
-            {/* todo input[s] */}
-            <input
-              className="peer/todo flex-grow h-8 ml-4 bg-transparent focus:outline-none font-medium"
-              type="text"
-              id="todo"
-              name="todo"
-              required
-              placeholder="add a new todo"
-              ref={ref}
-              onKeyUp={onKeyUp}
-            />
-            {/* todo input[e] */}
-            {/* reset button[s] */}
-            <button id="reset" className="peer-invalid/todo:hidden h-8 px-2 text-sm font-medium rounded">
-              <svg className="w-5 h-5 text-gray-400 fill-current" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  xmlns="http://www.w3.org/2000/svg"
-                  d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </button>
-            {/* reset button[e] */}
-          </div>
+          <form onSubmit={onSubmit}>
+            <div className="flex items-center w-full mt-2">
+              {/* submit button[s] */}
+              <button id="submit" type="submit" className="h-8 px-2 text-sm font-medium rounded">
+                <svg className="w-5 h-5 text-gray-400 fill-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+              {/* submit button[e] */}
+              {/* todo input[s] */}
+              <input
+                className="peer/todo flex-grow h-8 ml-4 bg-transparent focus:outline-none font-medium"
+                type="text"
+                id="todo"
+                name="todo"
+                required
+                placeholder="add a new todo"
+              />
+              {/* todo input[e] */}
+              {/* reset button[s] */}
+              <button type="reset" className="peer-invalid/todo:hidden h-8 px-2 text-sm font-medium rounded">
+                <svg className="w-5 h-5 text-gray-400 fill-current" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    xmlns="http://www.w3.org/2000/svg"
+                    d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                    fillRule="evenodd"
+                  />
+                </svg>
+              </button>
+              {/* reset button[e] */}
+            </div>
+          </form>
           {/* form[e] */}
         </div>
       </div>
